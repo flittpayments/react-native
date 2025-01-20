@@ -21,7 +21,7 @@ export class Cloudipsp {
   private readonly __merchantId__: number;
   private readonly __cloudipspView__: CloudipspWebviewProvider;
 
-  private readonly __baseUrl__ = 'https://api.fondy.eu';
+  private readonly __baseUrl__ = 'https://pay.flitt.com';
   private readonly __callbackUrl__ = 'http://callback';
 
   constructor(merchantId: number = req('merchantId'), cloudipspView: CloudipspWebviewProvider = req('cloudipspView')) {
