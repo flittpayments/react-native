@@ -22,7 +22,9 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
-            return new PackageList(this).getPackages();
+          List<ReactPackage> packages = new PackageList(this).getPackages();
+          packages.add(new RNCloudipspPackage());
+          return packages;
         }
 
         @Override

@@ -1,11 +1,11 @@
-package com.example;
+package com.cloudipsp.rn;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.uimanager.ViewManager;
 
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.awesomeproject.GooglePayButtonManager;
+import com.cloudipsp.rn.GooglePayButtonManager;
 
 import java.util.ArrayList;
 import java.util.Collections;

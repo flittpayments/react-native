@@ -23,6 +23,5 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
 
-    compileOnly 'com.google.android.gms:play-services-base:17.0.0'
-    compileOnly 'com.google.android.gms:play-services-wallet:17.0.0'
+    compileOnly 'com.google.android.gms:play-services-wallet:19.4.0'
 }

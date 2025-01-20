@@ -143,41 +143,44 @@ export class Cloudipsp {
     }
   }
 
-  public googlePayToken(token: string = req('token')): Promise<Receipt> {
+  public googlePayToken(token: string = req('token'),config:any): Promise<Receipt> {
     Cloudipsp.__assertGooglePay__();
-    let config: any, receiptFromToken: Receipt;
+    let receiptFromToken: Receipt;
     return this.__order__(token)
-      .then((receipt) => {
-        receiptFromToken = receipt;
-        return this.__getPaymentConfig__(null, null, token, 'https://google.com/pay', 'GooglePay')
-      })
-      .then((_config) => {
-        config = _config;
-        return Native.googlePay(config.data);
-      })
-      .then((googlePayInfo) => {
-        return this.__checkoutGooglePay__(token, receiptFromToken.email, config.payment_system, googlePayInfo);
-      })
-      .then((checkout) => this.__payContinue__(checkout, token, receiptFromToken.responseUrl!));
+        .then((receipt) => {
+          receiptFromToken = receipt;
+          return Native.googlePay(config)
+        })
+        .then((googlePayInfo) => {
+          return this.__checkoutGooglePay__(token, receiptFromToken.email, config.payment_system, googlePayInfo);
+        })
+        .then((checkout) => this.__payContinue__(checkout, token, receiptFromToken.responseUrl!));
   }
 
-  public googlePay(order: Order = req('order')): Promise<Receipt> {
+
+  public googlePay(order: Order = req('order'),config:any): Promise<Receipt> {
     Cloudipsp.__assertGooglePay__();
-    let config: any, googlePayInfo: any, token: string;
-    return this.__getPaymentConfig__(order.amount, order.currency, null, 'https://google.com/pay', 'GooglePay')
-      .then((_config) => {
-        config = _config;
-        return Native.googlePay(config.data);
-      })
-      .then((_googlePayInfo) => {
-        googlePayInfo = _googlePayInfo;
-        return this.__getToken__(order);
-      })
-      .then((_token) => {
-        token = _token;
-        return this.__checkoutGooglePay__(token, order.email, config.payment_system, googlePayInfo);
-      })
-      .then((checkout) => this.__payContinue__(checkout, token, this.__callbackUrl__));
+    let googlePayInfo: any, token: string;
+    return Native.googlePay(config)
+        .then((_googlePayInfo) => {
+          return _googlePayInfo
+        })
+        .then((_googlePayInfo) => {
+          googlePayInfo = _googlePayInfo;
+          return this.__getToken__(order);
+        })
+        .then((_token) => {
+          token = _token;
+          return this.__checkoutGooglePay__(token, order.email, config.payment_system, googlePayInfo);
+        })
+        .then((checkout) => this.__payContinue__(checkout, token, this.__callbackUrl__));
+  }
+
+  public async initiateGooglePayButton(token:string | null = null,amount: number | null = null,currency:string | null = null): Promise<any> {
+    return this.__getPaymentConfig__(amount,currency,token,'https://google.com/pay','GooglePay').then((_config) => {
+      const response = _config.data
+      return response
+    })
   }
 
   private __getPaymentConfig__(

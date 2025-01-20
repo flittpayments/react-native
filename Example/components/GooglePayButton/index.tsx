@@ -1,30 +1,49 @@
-import React, {FC} from 'react';
-import {requireNativeComponent, StyleSheet} from 'react-native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+import {CloudipspWebView, GooglePayButton} from 'react-native-cloudipsp';
 
-// Native component registration
-const RNGooglePayButton = requireNativeComponent('GooglePayButton');
+const Merchant = 1396424;
+const GooglePayButton = () => {
 
-interface IGooglePayButton {
-    onClick:() => void,
-    theme?:'light' | 'dark',
-    type?: 'buy' | 'plain',
-    borderRadius?:number
-}
-const GooglePayButton:FC<IGooglePayButton> = ( { onClick,theme = 'light',type = 'buy',borderRadius } ) => (
-    <RNGooglePayButton
-        style={ styles.button } // required (number | percent)
-        onClick={ onClick }
-        buttonTheme={ theme } // light
-        buttonType={ type } // or plain
-        borderRadius={ borderRadius }
-    />
-);
+    const _cloudipspWebViewRef = useRef<CloudipspWebView>(null);
+    const [webView, setWebView] = useState(0);
 
-const styles = StyleSheet.create({
-    button: {
-        width: '100%', // required (number | percent)
-        height: 80
+
+    // Render the WebView if webView state is true
+    if (webView) {
+        return <View style={{flex:1,backgroundColor:'green'}}>
+            <CloudipspWebView ref={_cloudipspWebViewRef} />
+        </View>
     }
-});
+
+
+    return (
+        <GooglePayButton
+            borderRadius={ 10 }
+            type={'pay'}
+            theme={'dark'}
+            style={{ width:'100%',height:60 }}
+            onStart = {() => console.log('pressed')}
+            order = {{
+                amount:10,
+                currency:'GEL',
+                orderId:'rn_' + Math.random(),
+                description:'test payment',
+                email:'test@gmail.com'
+            }}
+            merchant_id = { Merchant }
+            webView = { _cloudipspWebViewRef }
+            setWebView = {() => setWebView(1)}
+            onSuccess = {(receipt) => {
+                console.log('paymentSuccess: ', receipt)
+                setWebView(0)
+            }}
+            onError = {(error) => {
+                console.log(error)
+                setWebView(0)
+            }}
+        />
+    )
+};
 
 export default GooglePayButton;

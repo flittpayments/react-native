@@ -15,3 +15,4 @@ export {CardInput} from './CardInput';
 export {CardLayout} from './CardLayout';
 export {Cloudipsp} from './Cloudipsp';
 export {CloudipspWebView} from './CloudipspWebview';
+export { GooglePayButton } from './GooglePayButton';
