@@ -1,7 +1,7 @@
 {
-  "name": "react-native-cloudipsp",
-  "version": "2.0.0",
-  "description": "Library for accepting payments directly from android application's clients.",
+  "name": "@flittpayments/react-native-flitt",
+  "version": "1.0.0",
+  "description": "A React Native library designed to facilitate direct payment acceptance within Android and iOS applications.",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
   "react-native": "src/index.ts",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cloudipsp/react-native-cloudipsp.git"
+    "url": "git+https://github.com/flittpayments/react-native.git"
   },
   "keywords": [
     "react-component",
@@ -40,7 +40,7 @@
   "author": "Maxim Kozenko",
   "license": "The MIT License (MIT)",
   "bugs": {
-    "url": "https://github.com/cloudipsp/react-native-cloudipsp/issues"
+    "url": "https://github.com/flittpayments/react-native/issues"
   },
   "homepage": "https://cloudipsp.com",
   "jest": {
