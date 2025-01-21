@@ -42,7 +42,7 @@
   "bugs": {
     "url": "https://github.com/flittpayments/react-native/issues"
   },
-  "homepage": "https://cloudipsp.com",
+  "homepage": "https://flitt.com",
   "jest": {
     "preset": "react-native"
   },
