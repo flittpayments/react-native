@@ -2,25 +2,20 @@ package com.cloudipsp.rn;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
-import com.facebook.react.uimanager.ViewManager;
-
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.cloudipsp.rn.GooglePayButtonManager;
-
-import java.util.ArrayList;
+import com.facebook.react.uimanager.ViewManager;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class GooglePayPackage implements ReactPackage {
     @Override
-    public List<NativeModule> createNativeModules(
-        com.facebook.react.bridge.ReactApplicationContext reactContext
-    ) {
-        return new ArrayList<>();
+    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
+        return Collections.emptyList();
     }
 
-      @Override
-       public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-           return Collections.singletonList(new GooglePayButtonManager());
-       }
+    @Override
+    public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
+        return Arrays.<ViewManager>asList(new GooglePayButtonManager());
+    }
 }
