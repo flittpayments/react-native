@@ -102,7 +102,7 @@ export const GooglePayButton: FC<IGooglePayButton> = ({
     const initiatePaymentButton = useCallback(async () => {
         if (cloudipsp.current) {
             try {
-                const response = await cloudipsp.current?.initiateGooglePayButton(
+                const response = await cloudipsp.current?.getPaymentConfig(
                     token,
                     order?.amount,
                     order?.currency

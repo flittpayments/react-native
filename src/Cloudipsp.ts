@@ -143,8 +143,18 @@ export class Cloudipsp {
     }
   }
 
-  public googlePayToken(token: string = req('token'),config:any): Promise<Receipt> {
+  public googlePayToken(token: string = req('token'),config?:any): Promise<Receipt> {
     Cloudipsp.__assertGooglePay__();
+    if(config){
+      return this.processGooglePayToken(token,config)
+    }
+    return this.getPaymentConfig(token).then(config => {
+      return this.processGooglePayToken(token,config)
+    })
+  }
+
+
+  private processGooglePayToken(token: string = req('token'),config:any): Promise<Receipt>{
     let receiptFromToken: Receipt;
     return this.__order__(token)
         .then((receipt) => {
@@ -157,9 +167,24 @@ export class Cloudipsp {
         .then((checkout) => this.__payContinue__(checkout, token, receiptFromToken.responseUrl!));
   }
 
-
-  public googlePay(order: Order = req('order'),config:any): Promise<Receipt> {
+  public googlePay(order: Order = req('order'),config?:any): Promise<Receipt> {
     Cloudipsp.__assertGooglePay__();
+    if(config){
+      return this.processGooglePay(order,config)
+    }
+    return this.getPaymentConfig(null,order.amount,order.currency).then(config => {
+      return this.processGooglePay(order,config)
+    })
+  }
+
+  public async getPaymentConfig(token:string | null = null,amount: number | null = null,currency:string | null = null): Promise<any> {
+    return this.__getPaymentConfig__(amount,currency,token,'https://google.com/pay','GooglePay').then((_config) => {
+      const response = _config.data
+      return response
+    })
+  }
+
+  private processGooglePay(order: Order = req('order'),config:any): Promise<Receipt> {
     let googlePayInfo: any, token: string;
     return Native.googlePay(config)
         .then((_googlePayInfo) => {
@@ -174,13 +199,6 @@ export class Cloudipsp {
           return this.__checkoutGooglePay__(token, order.email, config.payment_system, googlePayInfo);
         })
         .then((checkout) => this.__payContinue__(checkout, token, this.__callbackUrl__));
-  }
-
-  public async initiateGooglePayButton(token:string | null = null,amount: number | null = null,currency:string | null = null): Promise<any> {
-    return this.__getPaymentConfig__(amount,currency,token,'https://google.com/pay','GooglePay').then((_config) => {
-      const response = _config.data
-      return response
-    })
   }
 
   private __getPaymentConfig__(
