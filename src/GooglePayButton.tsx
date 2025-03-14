@@ -132,13 +132,17 @@ export const GooglePayButton: FC<IGooglePayButton> = ({
                     order.description
                 );
                 const receipt = await cloudipsp.current?.googlePay(_order, config)
-                if(onSuccess){
-                    onSuccess(receipt as Receipt)
+                if(receipt?.status === "approved"){
+                    onSuccess?.(receipt as Receipt)
+                }else{
+                    onError?.(receipt)
                 }
             } else if (token) {
                 const receipt = await cloudipsp.current?.googlePayToken(token, config)
-                if(onSuccess){
-                    onSuccess(receipt as Receipt)
+                if(receipt?.status === "approved"){
+                    onSuccess?.(receipt as Receipt)
+                }else{
+                    onError?.(receipt)
                 }
             }
         } catch (error) {
@@ -149,6 +153,7 @@ export const GooglePayButton: FC<IGooglePayButton> = ({
             isProcessing.current = false; // Reset the processing state
         }
     }, [order, token, config, onSuccess, onError])
+
 
     const checkGPaySupport = useCallback(async () => {
         try {
