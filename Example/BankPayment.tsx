@@ -18,11 +18,13 @@ const ApplePayGpay = () => {
     const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
     const [processing, setProcessing] = useState<boolean>(false);
 
+
+    const cloudipsp = new Cloudipsp(1549901);
+
     useEffect(() => {
         const loadBanks = async() => {
             try {
                 setLoading(true);
-                const cloudipsp = new Cloudipsp(1549901);
                 const bankList = await cloudipsp.getAvailableBanks({token: "9c27149ae8b649e80c4b95c1af694747c36bef3c"});
                 setBanks(bankList);
             } catch (error) {
@@ -40,7 +42,6 @@ const ApplePayGpay = () => {
             setSelectedBank(bank);
             setProcessing(true);
 
-            const cloudipsp = new Cloudipsp(1549901,() => {});
             await cloudipsp.initiateBankPayment({
                 token: "9c27149ae8b649e80c4b95c1af694747c36bef3c",
                 bank: bank,

@@ -343,10 +343,12 @@ Flitt SDK provides support for bank payments, allowing users to pay directly thr
 You can retrieve the list of available banks for payment using either a token or an order:
 
 ```javascript
+
+const cloudipsp = new Cloudipsp(merchantId);
+
 // Using a token
 const getAvailableBanksWithToken = async () => {
     try {
-        const cloudipsp = new Cloudipsp(merchantId);
         const banks = await cloudipsp.getAvailableBanks({
             token: "your-payment-token"
         });
@@ -368,7 +370,6 @@ const getAvailableBanksWithOrder = async () => {
             'customer@email.com'    // Customer email
         );
         
-        const cloudipsp = new Cloudipsp(merchantId);
         const banks = await cloudipsp.getAvailableBanks({
             order: order
         });
@@ -384,10 +385,10 @@ const getAvailableBanksWithOrder = async () => {
 
 After retrieving and selecting a bank, you can initiate the payment:
 
+
 ```javascript
 const initiateBankPayment = async (selectedBank) => {
     try {
-        const cloudipsp = new Cloudipsp(merchantId);
         
         // You can use either a token or an order
         const response = await cloudipsp.initiateBankPayment({
@@ -445,6 +446,8 @@ const BankPaymentScreen = () => {
     const [banks, setBanks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+
+    const cloudipsp = new Cloudipsp(merchantId);
     
     useEffect(() => {
         loadAvailableBanks();
@@ -453,7 +456,6 @@ const BankPaymentScreen = () => {
     const loadAvailableBanks = async () => {
         try {
             setLoading(true);
-            const cloudipsp = new Cloudipsp(merchantId);
             
             // You can use either token or order
             const bankList = await cloudipsp.getAvailableBanks({
@@ -474,7 +476,6 @@ const BankPaymentScreen = () => {
         try {
             setProcessing(true);
             
-            const cloudipsp = new Cloudipsp(merchantId);
             await cloudipsp.initiateBankPayment({
                 token: "your-payment-token",
                 // OR
