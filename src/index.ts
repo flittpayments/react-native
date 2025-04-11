@@ -1,4 +1,5 @@
 export {Card} from './models/Card';
+export {Bank} from './models/Bank';
 export {Currency} from './models/Currency';
 export {Failure} from './models/Failure';
 export {Lang} from './models/Lang';
