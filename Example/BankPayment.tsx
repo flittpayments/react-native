@@ -9,8 +9,7 @@ import {
     ActivityIndicator,
     FlatList
 } from 'react-native';
-import { Cloudipsp } from '@flittpayments/react-native-flitt';
-import {Bank} from "@flittpayments/react-native-flitt/dist/typescript/models/Bank";
+import { Bank,Cloudipsp } from '@flittpayments/react-native-flitt';
 
 const PayWithBank = () => {
     const [banks, setBanks] = useState<Bank[]>([]);
