@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import {Linking, Platform} from 'react-native';
 import RNWebView from 'react-native-webview';
 
 import {
@@ -16,17 +16,27 @@ import {
   CloudipspWebviewProvider,
 } from './CloudipspWebview';
 import {Native} from './Native';
+import {
+  BankPayCallback,
+  IBankPaymentResponse,
+  IPayWithBankRequest
+} from "./types/flitt.types";
+import {DeviceInfoProvider} from "./DeviceFingerprint";
+import {Bank} from "./models/Bank";
 
 export class Cloudipsp {
   private readonly __merchantId__: number;
-  private readonly __cloudipspView__: CloudipspWebviewProvider;
+  private readonly __cloudipspView__?: CloudipspWebviewProvider;
 
   private readonly __baseUrl__ = 'https://pay.flitt.com';
+  // private readonly __baseUrl__ = 'https://sandbox.pay.flitt.dev';
   private readonly __callbackUrl__ = 'http://callback';
 
-  constructor(merchantId: number = req('merchantId'), cloudipspView: CloudipspWebviewProvider = req('cloudipspView')) {
+  constructor(merchantId: number = req('merchantId'), cloudipspView?: CloudipspWebviewProvider) {
     this.__merchantId__ = merchantId;
-    this.__cloudipspView__ = cloudipspView;
+    if(cloudipspView){
+      this.__cloudipspView__ = cloudipspView;
+    }
 
     if (!RNWebView) {
       throw new Error('"react-native-webview" module required');
@@ -199,6 +209,152 @@ export class Cloudipsp {
           return this.__checkoutGooglePay__(token, order.email, config.payment_system, googlePayInfo);
         })
         .then((checkout) => this.__payContinue__(checkout, token, this.__callbackUrl__));
+  }
+
+  public async getAvailableBanks({token, order}: IPayWithBankRequest) {
+    if (!order && !token) {
+      throw new Error('order or token should be provided');
+    }
+
+    let requestToken: string = '';
+    if (order) {
+      requestToken = await this.__getToken__(order);
+    } else {
+      requestToken = token!;
+    }
+
+    try {
+      const response = await this.__callJson__('/api/checkout/ajax/info', { token: requestToken });
+      const banks: Bank[] = [];
+
+      if (response.tabs && response.tabs.trustly && response.tabs.trustly.payment_systems) {
+        const paymentSystems = response.tabs.trustly.payment_systems;
+
+        for (const key in paymentSystems) {
+          if (typeof paymentSystems[key] === 'object') {
+            const bankData = paymentSystems[key];
+            const bank = new Bank(
+                key,
+                bankData.country_priority,
+                bankData.user_priority,
+                bankData.quick_method,
+                bankData.user_popular,
+                bankData.name,
+                bankData.country,
+                bankData.bank_logo,
+                bankData.alias
+            );
+            banks.push(bank);
+          }
+        }
+      }
+      banks.sort((bank1, bank2) => {
+        if (bank1.getUserPriority() !== bank2.getUserPriority()) {
+          return bank2.getUserPriority() - bank1.getUserPriority();
+        }
+        return bank2.getCountryPriority() - bank1.getCountryPriority();
+      });
+
+      return banks;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async initiateBankPayment({
+                                       merchantId,
+                                       order,
+                                       token,
+                                       bank,
+                                       callback,
+                                       autoRedirect = true
+                                     }: {
+    merchantId?: string;
+    order?: Order;
+    token?: string;
+    bank: Bank;
+    callback?: BankPayCallback;
+    autoRedirect?: boolean;
+  }): Promise<IBankPaymentResponse> {
+
+    // Validate required parameters
+    if(!bank) {
+      throw new Error('Bank object must be provided');
+    }
+
+    if(!token && !order) {
+      throw new Error('Either token or order must be provided');
+    }
+
+    try {
+      const deviceInfo = new DeviceInfoProvider();
+      const encodedDeviceData = await deviceInfo.getEncodedDeviceFingerprint();
+
+      let requestObject: any = {};
+      let responseData: IBankPaymentResponse;
+
+      if(token) {
+        // If we have a token, get order details from the API
+        const orderInfo = await this.__order__(token);
+
+        requestObject = {
+          merchant_id: orderInfo || merchantId,
+          amount: orderInfo.amount,
+          currency: orderInfo.currency,
+          token: token,
+          payment_system: bank.getBankId(),
+          kkh: encodedDeviceData
+        };
+
+        responseData = await this.__callJson__('/api/checkout/ajax', requestObject);
+      } else if(order) {
+        // If we have order details but no token, get a token first
+        const localToken = await this.__getToken__(order);
+
+        const orderInfo = await this.__order__(localToken);
+        requestObject = {
+          merchant_id: merchantId,
+          amount: order.amount || orderInfo.amount,
+          currency: order.currency || orderInfo.currency,
+          token: localToken,
+          payment_system: bank.getBankId(),
+          kkh: encodedDeviceData
+        };
+        responseData = await this.__callJson__('/api/checkout/ajax', requestObject);
+      } else {
+        throw new Error('Order or token must be provided');
+      }
+      // Process response
+      if(responseData.response_status === "success" &&
+          responseData.action === "redirect" &&
+          responseData.url) {
+        // Handle redirect if needed for React Native
+        if(autoRedirect) {
+          const canOpen = await Linking.canOpenURL(responseData.url);
+          if(canOpen) {
+            await Linking.openURL(responseData.url);
+          } else {
+            throw new Error(`Cannot open URL: ${responseData.url}`);
+          }
+        }
+        // Call success callback
+        if(callback) {
+          callback.onPaidSuccess(responseData);
+        }
+      } else {
+        // Handle failure
+        if(callback) {
+          callback.onPaidFailure(new Error(`Payment initiation failed: payment status: ${responseData.response_status}, action: ${responseData.action}`));
+        }
+      }
+      return responseData;
+    } catch(error) {
+      // Handle exceptions
+      if(callback) {
+        callback.onPaidFailure(error instanceof Error ? error : new Error(String(error)));
+      }
+      throw error;
+    }
   }
 
   private __getPaymentConfig__(
@@ -387,10 +543,14 @@ export class Cloudipsp {
         return response.text();
       })
       .then((html) => {
-        return this.__cloudipspView__((cloudipspView: CloudipspWebView) => {
-          const cloudipspViewPrivate = cloudipspView as unknown as CloudipspWebviewPrivate;
-          return cloudipspViewPrivate.__confirm__(checkout.url, html, cookies, this.__baseUrl__, callbackUrl);
-        });
+        if(this.__cloudipspView__){
+          return this.__cloudipspView__((cloudipspView: CloudipspWebView) => {
+            const cloudipspViewPrivate = cloudipspView as unknown as CloudipspWebviewPrivate;
+            return cloudipspViewPrivate.__confirm__(checkout.url, html, cookies, this.__baseUrl__, callbackUrl);
+          });
+        }else{
+          throw new Error('Parameter webview provider is required');
+        }
       });
   }
 

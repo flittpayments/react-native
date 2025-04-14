@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {View, Button, Alert, Platform, SafeAreaView} from 'react-native';
-import {Order, Cloudipsp, CloudipspWebView} from 'react-native-cloudipsp';
+import {Order, Cloudipsp, CloudipspWebView} from '@flittpayments/react-native-flitt';
 
 // Merchant ID for payment processing
 const Merchant = 1396424;

@@ -334,6 +334,177 @@ const handleCardPayment = () => {
 };
 ```
 
+### 7. Bank Payment Implementation
+
+Flitt SDK provides support for bank payments, allowing users to pay directly through their bank accounts. This implementation consists of two main steps: retrieving available banks and initiating a bank payment.
+
+#### Getting Available Banks
+
+You can retrieve the list of available banks for payment using either a token or an order:
+
+```javascript
+
+const cloudipsp = new Cloudipsp(merchantId);
+
+// Using a token
+const getAvailableBanksWithToken = async () => {
+    try {
+        const banks = await cloudipsp.getAvailableBanks({
+            token: "your-payment-token"
+        });
+        console.log('Available banks:', banks);
+        return banks;
+    } catch (error) {
+        console.error('Failed to get available banks:', error);
+    }
+};
+
+// Using an order
+const getAvailableBanksWithOrder = async () => {
+    try {
+        const order = new Order(
+            100,                // Amount
+            'GEL',              // Currency
+            'order_' + Math.random(), // Unique order ID
+            'bank payment',     // Description
+            'customer@email.com'    // Customer email
+        );
+        
+        const banks = await cloudipsp.getAvailableBanks({
+            order: order
+        });
+        console.log('Available banks:', banks);
+        return banks;
+    } catch (error) {
+        console.error('Failed to get available banks:', error);
+    }
+};
+```
+
+#### Initiating Bank Payment
+
+After retrieving and selecting a bank, you can initiate the payment:
+
+
+```javascript
+const initiateBankPayment = async (selectedBank) => {
+    try {
+        
+        // You can use either a token or an order
+        const response = await cloudipsp.initiateBankPayment({
+            // Option 1: Using a token
+            token: "your-payment-token",
+            
+            // Option 2: Using an order
+            // order: new Order(100, 'GEL', 'order_id', 'description', 'email'),
+            
+            // Selected bank from the getAvailableBanks response
+            bank: selectedBank,
+            
+            // Optional: Control whether to automatically redirect to the bank's page
+            autoRedirect: true,
+            
+            // Optional: Callback handlers for payment status
+            callback: {
+                onPaidSuccess: (response) => {
+                    console.log("Payment successful", response);
+                    // Handle successful payment
+                },
+                onPaidFailure: (error) => {
+                    console.error("Payment failed", error);
+                    // Handle failed payment
+                }
+            }
+        });
+        
+        return response;
+    } catch (error) {
+        console.error('Bank payment failed:', error);
+        throw error;
+    }
+};
+```
+
+#### Complete Bank Payment Implementation Example
+
+Here's a complete example showing how to implement bank payments in a React component:
+
+```jsx
+import React, { useEffect, useState } from 'react';
+import {
+    View, 
+    SafeAreaView,
+    Text, 
+    FlatList, 
+    TouchableOpacity, 
+    ActivityIndicator
+} from 'react-native';
+import { Cloudipsp } from '@flittpayments/react-native-flitt';
+import { Bank } from '@flittpayments/react-native-flitt/dist/typescript/models/Bank';
+
+const BankPaymentScreen = () => {
+    const [banks, setBanks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
+
+    const cloudipsp = new Cloudipsp(merchantId);
+    
+    useEffect(() => {
+        loadAvailableBanks();
+    }, []);
+    
+    const loadAvailableBanks = async () => {
+        try {
+            setLoading(true);
+            
+            // You can use either token or order
+            const bankList = await cloudipsp.getAvailableBanks({
+                token: "your-payment-token"
+                // OR
+                // order: yourOrderObject
+            });
+            
+            setBanks(bankList);
+        } catch (error) {
+            console.error("Failed to load banks:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const handleBankSelection = async (bank) => {
+        try {
+            setProcessing(true);
+            
+            await cloudipsp.initiateBankPayment({
+                token: "your-payment-token",
+                // OR
+                // order: yourOrderObject,
+                bank: bank,
+                autoRedirect: true,
+                callback: {
+                    onPaidSuccess: (response) => {
+                        console.log("Payment successful", response);
+                        setProcessing(false);
+                        // Navigate or update UI on success
+                    },
+                    onPaidFailure: (error) => {
+                        console.error("Payment failed", error);
+                        setProcessing(false);
+                        // Show error message
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Error processing payment:", error);
+            setProcessing(false);
+        }
+    };
+    
+    // Render your bank selection UI...
+};
+```
+
 ## Card Input Components
 
 ### Default Card Input
