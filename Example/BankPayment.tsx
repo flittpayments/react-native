@@ -12,7 +12,7 @@ import {
 import { Cloudipsp } from '@flittpayments/react-native-flitt';
 import {Bank} from "@flittpayments/react-native-flitt/dist/typescript/models/Bank";
 
-const ApplePayGpay = () => {
+const PayWithBank = () => {
     const [banks, setBanks] = useState<Bank[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
@@ -291,4 +291,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default ApplePayGpay;
+export default PayWithBank;
