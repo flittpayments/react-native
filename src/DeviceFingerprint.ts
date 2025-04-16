@@ -1,6 +1,6 @@
 import { Dimensions, Platform } from 'react-native'
-import packageInfo from '../package.json'
 
+const VERSION = '1.2.0'
 export class DeviceInfoProvider {
     async createDeviceFingerprint() {
         const root: any = {}
@@ -13,7 +13,7 @@ export class DeviceInfoProvider {
         data.resolution = [this.getScreenWidth(), this.getScreenHeight()]
         data.timezone_offset = this.getTimezoneOffset()
         data.platform_name = 'react_native_sdk'
-        data.platform_version = packageInfo.version
+        data.platform_version = VERSION
         data.platform_os = Platform.OS
         data.sdk = 'react_native_sdk'
         data.platform_product = this.getPlatformVersion()
