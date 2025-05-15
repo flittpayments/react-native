@@ -1,6 +1,6 @@
 {
   "name": "@flittpayments/react-native-flitt",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A React Native library designed to facilitate direct payment acceptance within Android and iOS applications.",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
