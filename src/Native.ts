@@ -23,6 +23,6 @@ export const Native = NativeModules.RNCloudipsp as INative;
 
 if (!Native) {
   throw new Error(
-    'Cloudipsp native module not found. Did you forget to link native module or rebuild the native project after installing this library?'
+    'Flitt native module not found. Did you forget to link native module or rebuild the native project after installing this library?'
   )
 }
