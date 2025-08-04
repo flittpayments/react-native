@@ -24,12 +24,16 @@ export abstract class CardFieldBase extends React.Component<CloudipspInputProps,
     this.setState({ __enabled__: value });
   };
 
+  private countSpaces(): number {
+    const matches = this.state?.__text__?.match(/ /g);
+    return matches ? matches.length : 0;
+  }
   protected readonly _setText = (text: string): void => {
     this.setState({ __text__: text });
   };
 
   protected readonly _getText = (): string => {
-    return this.state.__text__;
+    return this.state.__text__?.replace(/ /g, '');
   };
 
   protected readonly _setMaxLength = (value: number): void => {
@@ -53,24 +57,32 @@ export abstract class CardFieldBase extends React.Component<CloudipspInputProps,
   }
 
   render() {
+
+    const baseMaxLength = this._maxLength();
+    const currentSpaceCount = this.countSpaces();
+    const dynamicMaxLength = baseMaxLength + currentSpaceCount;
+
     return (<TextInput
-      ref={this._inputRef}
+        ref={this._inputRef}
 
-      {...this.props}
+        {...this.props}
 
-      maxLength={this.state.__max_length__}
-      secureTextEntry={this._isSecure()}
-      multiline={false}
-      editable={this.state.__enabled__}
-      keyboardType={'numeric'}
+        maxLength={dynamicMaxLength}
+        secureTextEntry={this._isSecure()}
+        multiline={false}
+        editable={this.state.__enabled__}
+        keyboardType={'numeric'}
 
-      value={this.state.__text__}
-      onChangeText={(text) => {
-        if (this.__onChangeText__) {
-          this.__onChangeText__(text);
-        }
-        this.setState({ __text__: text });
-      }}
+        value={this.props?.value ? this.props?.value : this.state.__text__}
+        onChangeText={(text) => {
+          if (this.__onChangeText__) {
+            this.__onChangeText__(text);
+          }
+          this.setState({ __text__: text });
+          if(this.props?.onChangeText) {
+            this.props.onChangeText(text);
+          }
+        }}
     />);
   }
 }
