@@ -1,33 +1,45 @@
-import {isCvv4Length} from "../../../helpers/utils/isValidCardNumber";
-import {useForm, UseFormReturn} from "../../../helpers/hooks/useForm";
-import {FormField} from "../FormField/FormField";
+import React from "react"
+import {Control, Controller, UseFormWatch, FieldErrors} from "react-hook-form"
+import {isCvv4Length} from "../../../helpers/utils"
+import {FormField} from "../FormField/FormField"
+import {ICardFormData} from "../../../types";
+
 
 interface FlittCardCvvProps {
-    form?: UseFormReturn
+    control: Control<ICardFormData>
+    watch: UseFormWatch<ICardFormData>
+    errors: FieldErrors<ICardFormData>
 }
 
-export const FlittCardCvv: React.FC<FlittCardCvvProps> = ({ form }) => {
-    const {register, watch} = form || useForm()
-
-    const cardNumber = watch('cardNumber');
-
+export const FlittCardCvv: React.FC<FlittCardCvvProps> = ({control, watch, errors}) => {
+    const cardNumber = watch('cardNumber')
     return (
-        <FormField
-            label="CVV"
-            placeholder="123"
-            {...register({
-                name: 'cvv',
-                rules: {
-                    required: 'CVV is required',
-                    validate: (value: string) => {
-                        const requiredLength = isCvv4Length(cardNumber as any) ? 4 : 3;
-                        return value.length === requiredLength || `CVV must be ${requiredLength} digits`;
-                    },
-                },
-            })}
-            keyboardType="numeric"
-            maxLength={isCvv4Length(cardNumber as any) ? 4 : 3}
-            secureTextEntry
+        <Controller
+            name="cvv"
+            control={control}
+            rules={{
+                required: 'CVV is required',
+                validate: (value: string) => {
+                    const requiredLength = isCvv4Length(cardNumber) ? 4 : 3
+                    if (value.length !== requiredLength) {
+                        return `CVV must be ${requiredLength} digits`
+                    }
+                    return true
+                }
+            }}
+            render={({field: {onChange, onBlur, value}}) => (
+                <FormField
+                    label="CVV"
+                    placeholder="123"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    keyboardType="numeric"
+                    maxLength={isCvv4Length(cardNumber) ? 4 : 3}
+                    secureTextEntry
+                    error={errors.cvv?.message}
+                />
+            )}
         />
     )
 }

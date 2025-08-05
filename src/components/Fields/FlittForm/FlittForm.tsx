@@ -1,33 +1,52 @@
-import React from 'react'
+import React, {FC} from 'react'
 import {View, StyleSheet, Text, TouchableOpacity} from 'react-native'
-import {FlittCardNumber} from "../FlittCardNumber/FlittCardNumber";
-import {FlittCardExpiry} from "../FlittCardExpiry/FlittCardExpiry";
-import {FlittCardCvv} from "../FlittCardCvv/FlittCardCvv";
-import {useForm} from "../../../helpers/hooks/useForm";
+import {useForm, SubmitHandler} from 'react-hook-form'
+import {FlittCardNumber} from "../FlittCardNumber/FlittCardNumber"
+import {FlittCardExpiry} from "../FlittCardExpiry/FlittCardExpiry"
+import {FlittCardCvv} from "../FlittCardCvv/FlittCardCvv"
+import {useFlitt} from "../../../Flitt"
+import {IFlittProps} from "./types";
+import {ICardFormData} from "../../../types";
 
-export const FlittForm = () => {
 
-    const form = useForm();
+export const FlittForm: FC<IFlittProps> = ({order, onError, onStart, onSuccess, title}) => {
+    const {createCardPayment} = useFlitt()
 
     const {
+        control,
         handleSubmit,
-        formState: {isValid, isSubmitting,errors},
-    } = form;
+        watch,
+        formState: {isValid, isSubmitting, errors}
+    } = useForm<ICardFormData>({
+        mode: 'onChange',
+        defaultValues: {
+            cardNumber: '',
+            cvv: '',
+            expiry: '',
+        }
+    })
 
-    const onSubmit = (data: any) => {
-        console.log('Form submitted:', data);
-        // Handle form submission
-    };
-
-    console.log('errors',errors)
+    const onSubmit: SubmitHandler<ICardFormData> = async (data) => {
+        try {
+            createCardPayment({
+                order,
+                data,
+                onSuccess,
+                onError,
+                onStart
+            })
+        } catch (e) {
+            onError?.(e)
+        }
+    }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Card Details</Text>
+            <Text style={styles.title}>{title || 'Card Details'}</Text>
 
-            <FlittCardNumber form={form} />
-            <FlittCardExpiry form={form} />
-            <FlittCardCvv form={form} />
+            <FlittCardNumber control={control} watch={watch} errors={errors}/>
+            <FlittCardExpiry control={control} errors={errors}/>
+            <FlittCardCvv control={control} watch={watch} errors={errors}/>
 
             <TouchableOpacity
                 style={[
@@ -71,4 +90,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-});
+})

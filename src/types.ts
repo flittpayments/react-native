@@ -1,6 +1,6 @@
 import React, {RefObject} from "react";
-import {IOrder, IReceipt} from "../manager/types";
-import {IBank, IBankPaymentResponse, IInitiateBankPayment} from "../manager/bank/types";
+import {IOrder, IReceipt} from "./manager/types";
+import {IBank, IBankPaymentResponse, IInitiateBankPayment} from "./manager/bank/types";
 
 export interface IFlittContext {
     supportsGPay: boolean;
@@ -16,6 +16,7 @@ export interface IFlittContext {
     setWebViewVisible:React.Dispatch<React.SetStateAction<boolean>>,
     getAvailableBanks:({ token,order }: IGetAvailableBanks) => Promise<IBank[]>,
     initiateBankPayment:({ merchantId,order,token,onSuccess,onError,onStart,bankId }:IBankPayment ) => void
+    createCardPayment:({ order,token,onSuccess,onError,onStart,data }:ICreateCardPayment ) => void
     merchantId:number
 }
 export interface FlittProps {
@@ -30,6 +31,22 @@ export interface ICreatePayment {
     onError?:(receipt:IReceipt | Error | string) => void,
     onProcess?:(receipt:IReceipt) => void,
     onStart?:() => void,
+}
+
+export interface ICreateCardPayment {
+    token?:string,
+    order?: IOrder,
+    onSuccess?:(receipt:IReceipt) => void,
+    onError?:(receipt:IReceipt | Error | string) => void,
+    onProcess?:(receipt:IReceipt) => void,
+    onStart?:() => void,
+    data:ICardFormData
+}
+
+export interface ICardFormData {
+    cardNumber: string
+    cvv: string
+    expiry:string
 }
 
 export enum STATUSES {

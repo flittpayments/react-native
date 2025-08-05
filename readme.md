@@ -309,7 +309,7 @@ const handleCardPayment = () => {
     let card = cardInputRef.current?.getCard() ?? null;
     const order = _getOrder();
 
-    if (!card || !card.isValidCardNumber()) {
+    if (!card || !card.utils()) {
         Alert.alert('Warning', 'Credit card number is not valid');
     } else if (!card.isValidExpireMonth()) {
         Alert.alert('Warning', 'Expire month is not valid');

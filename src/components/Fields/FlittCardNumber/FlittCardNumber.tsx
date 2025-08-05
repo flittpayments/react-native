@@ -1,7 +1,10 @@
-import React, {FC} from "react";
-import {isValidCardNumber} from "../../../helpers/utils/isValidCardNumber";
-import {FormField} from "../FormField/FormField";
-import {UseFormReturn, useForm} from "../../../helpers/hooks/useForm";
+import React, {FC} from "react"
+import {Control, Controller, UseFormWatch, FieldErrors} from "react-hook-form"
+import {utils} from "../../../helpers/utils"
+import {FormField} from "../FormField/FormField"
+import {formatCardNumber} from "../../../helpers/formatCardNumber";
+import {ICardFormData} from "../../../types";
+
 
 interface FlittFieldNumberProps {
     label?: string
@@ -9,50 +12,46 @@ interface FlittFieldNumberProps {
     name?: string
     error?: string
     errorNotValidCardNumber?: string
-    form?: UseFormReturn
+    control: Control<ICardFormData>
+    watch: UseFormWatch<ICardFormData>
+    errors: FieldErrors<ICardFormData>
 }
 
 export const FlittCardNumber: FC<FlittFieldNumberProps> = ({
-                                                                placeholder = '1234 5678 9012 3456',
-                                                                label = 'Card Number',
-                                                                name = 'cardNumber',
-                                                                error = 'Card number is required',
-                                                                errorNotValidCardNumber = 'Invalid card number',
-                                                                form
-                                                            }) => {
-
-    const {register} = form || useForm()
-
+                                                               placeholder = '1234 5678 9012 3456',
+                                                               label = 'Card Number',
+                                                               name = 'cardNumber',
+                                                               error = 'Card number is required',
+                                                               errorNotValidCardNumber = 'Invalid card number',
+                                                               control,
+                                                               errors
+                                                           }) => {
     return (
-            <FormField
-                label={label}
-                placeholder={placeholder}
-                {...register({
-                    name: name,
-                    rules: {
-                        required: error,
-                        validate: (value: string) => {
-                            const formatted = value.replace(/\s/g, '');
-                            return isValidCardNumber(formatted) || errorNotValidCardNumber;
-                        },
-                    },
-                })}
-                keyboardType="numeric"
-                maxLength={19}
-                onChangeText={(text) => {
-                    const formatted = text.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-                    register({
-                        name: name,
-                        rules: {
-                            required: error,
-                            validate: (value: string) => {
-                                const clean = value.replace(/\s/g, '');
-                                return isValidCardNumber(clean) || errorNotValidCardNumber;
-                            },
-                        },
-                    }).onChangeText(formatted);
-                }}
-            />
+        <Controller
+            name={name as keyof ICardFormData}
+            control={control}
+            rules={{
+                required: error,
+                validate: (value: string) => {
+                    const cleaned = value.replace(/\s/g, '')
+                    return utils(cleaned) || errorNotValidCardNumber
+                }
+            }}
+            render={({field: {onChange, onBlur, value}}) => (
+                <FormField
+                    label={label}
+                    placeholder={placeholder}
+                    value={value}
+                    onChangeText={(text) => {
+                        const formatted = formatCardNumber(text)
+                        onChange(formatted)
+                    }}
+                    onBlur={onBlur}
+                    keyboardType="numeric"
+                    maxLength={19}
+                    error={errors[name as keyof ICardFormData]?.message}
+                />
+            )}
+        />
     )
 }
-

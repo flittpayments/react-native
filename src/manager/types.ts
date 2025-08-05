@@ -11,11 +11,11 @@ export interface IGetTokenResponse {
 }
 
 export interface IOrder {
-    merchant_id: number
-    amount: string
+    merchant_id?: number
+    amount: string | number
     currency: string
     order_id: string
-    order_desc: string
+    order_desc?: string
     description?: string;
     email?: string;
 
@@ -153,7 +153,7 @@ export interface IOrderData {
 
 export interface ICheckout {
     autoRedirect?:boolean,
-    amount?: string
+    amount?: string | number
     fee?: number
     currency?: string
     recurring?: string

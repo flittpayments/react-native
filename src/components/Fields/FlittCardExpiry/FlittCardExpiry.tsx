@@ -1,68 +1,48 @@
-import React from "react";
-import {View,StyleSheet} from "react-native";
-import {useForm, UseFormReturn} from "../../../helpers/hooks/useForm";
-import {FormField} from "../FormField/FormField";
-import {isValidExpireDate} from "../../../helpers/utils/isValidCardNumber";
+import React from "react"
+import {Control, Controller, FieldErrors} from "react-hook-form"
+import {FormField} from "../FormField/FormField"
+import {formatExpiry} from "../../../helpers/formatExpiry";
+import {validateExpiry} from "../../../helpers/validateExpiry";
 
-interface FlittCardExpiryProps {
-    form?: UseFormReturn
+interface FormData {
+    cardNumber: string
+    cvv: string
+    expiry:string
 }
 
-export const FlittCardExpiry: React.FC<FlittCardExpiryProps> = ({ form }) => {
+interface FlittCardExpiryProps {
+    control: Control<FormData>
+    errors: FieldErrors<FormData>
+}
 
-    const {register, watch} = form || useForm()
+export const FlittCardExpiry: React.FC<FlittCardExpiryProps> = ({control, errors}) => {
     return (
-        <View style={styles.row}>
-            <View style={styles.halfWidth}>
+        <Controller
+            name="expiry"
+            control={control}
+            rules={{
+                required: 'Expiry date is required',
+                validate: validateExpiry
+            }}
+            render={({field: {onChange, onBlur, value}}) => (
                 <FormField
-                    label="Expiry Month"
-                    placeholder="MM"
-                    {...register({
-                        name: 'expMm',
-                        rules: {
-                            required: 'Month is required',
-                            validate: (value: string) => {
-                                const mm = parseInt(value);
-                                const yy = parseInt(watch('expYy'));
-                                return isValidExpireDate(mm, yy) || 'Invalid expiry date';
-                            },
-                        },
-                    })}
+                    label="MM/YY"
+                    value={formatExpiry(value || '')}
                     keyboardType="numeric"
-                    maxLength={2}
+                    maxLength={5}
+                    placeholder="11/24"
+                    placeholderTextColor="#aaa"
+                    onChangeText={(text) => {
+                        const cleaned = text.replace(/\D/g, '')
+                        if (cleaned.length <= 4) {
+                            onChange(cleaned)
+                        }
+                    }}
+                    onBlur={onBlur}
+                    error={errors.expiry?.message}
                 />
-            </View>
-
-            <View style={styles.halfWidth}>
-                <FormField
-                    label="Expiry Year"
-                    placeholder="YY"
-                    {...register({
-                        name: 'expYy',
-                        rules: {
-                            required: 'Year is required',
-                            validate: (value: string) => {
-                                const mm = parseInt(watch('expMm'));
-                                const yy = parseInt(value);
-                                return isValidExpireDate(mm, yy) || 'Invalid expiry date';
-                            },
-                        },
-                    })}
-                    keyboardType="numeric"
-                    maxLength={2}
-                />
-            </View>
-        </View>
+            )}
+        />
     )
 }
 
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    halfWidth: {
-        width: '48%',
-    },
-
-});

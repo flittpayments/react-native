@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {FlatList, View, Text, Image, TouchableOpacity, Linking} from "react-native";
 import {FlittBankIcons} from "../../helpers/constants";
-import {useFlitt} from "../Flitt";
+import {useFlitt} from "../../Flitt";
 import {styles} from "./styles";
 import {IBankListProps} from "./types";
 import {IBank} from "../../manager/bank/types";

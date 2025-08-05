@@ -1,6 +1,6 @@
 import React, {FC, useEffect, useCallback} from 'react';
 import {requireNativeComponent, StyleProp, ViewStyle} from 'react-native';
-import {useFlitt} from "../Flitt";
+import {useFlitt} from "../../Flitt";
 import {ButtonType, IGooglePayButton, IPaymentMethod, ThemeType} from "./types";
 
 

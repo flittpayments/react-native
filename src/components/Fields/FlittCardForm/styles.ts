@@ -1,0 +1,92 @@
+import {StyleSheet} from "react-native";
+
+export const styles = StyleSheet.create({
+    container: {
+        padding: 20,
+        backgroundColor: '#f5f5f5',
+    },
+    formTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+        color: '#333',
+    },
+    card: {
+        backgroundColor: '#2D2E30',
+        borderRadius: 20,
+        padding: 20,
+        width: '100%',
+        alignSelf: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 6,
+        position: 'relative',
+    },
+    fieldContainer: {
+        marginBottom: 12,
+    },
+    label: {
+        color: '#aaa',
+        fontSize: 12,
+        marginBottom: 4,
+        fontWeight: '400',
+    },
+    input: {
+        color: '#fff',
+        fontSize: 20,
+        borderBottomColor: '#555',
+        borderBottomWidth: 1,
+        borderWidth: 0,
+        borderRadius: 0,
+        paddingBottom: 6,
+        paddingTop: 0,
+        paddingHorizontal: 0,
+        backgroundColor: 'transparent',
+    },
+    error: {
+        color: '#FF6B6B',
+        fontSize: 11,
+        marginTop: 4,
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
+    column: {
+        width: '48%',
+    },
+    cardLogo: {
+        width: 60,
+        height: 40,
+        resizeMode: 'contain',
+        position: 'absolute',
+        top: 20,
+        right: 20,
+    },
+    submitButton: {
+        backgroundColor: '#007AFF',
+        borderRadius: 12,
+        paddingVertical: 16,
+        alignItems: 'center',
+        marginTop: 24,
+        shadowColor: '#007AFF',
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+    },
+    submitButtonDisabled: {
+        backgroundColor: '#555',
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    submitButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+    },
+})

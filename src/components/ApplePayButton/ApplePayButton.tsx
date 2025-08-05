@@ -1,6 +1,6 @@
 import React, {FC, useCallback, useEffect} from 'react';
 import {requireNativeComponent} from 'react-native';
-import {useFlitt} from "../Flitt";
+import {useFlitt} from "../../Flitt";
 import {IApplePayButton, INativeApplePayButton} from "./types";
 
 

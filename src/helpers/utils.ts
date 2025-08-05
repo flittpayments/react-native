@@ -13,7 +13,7 @@ export function isCvv4Length(cardNumber: string): boolean {
 export const buildExp = (mm: number, yy: number) => {
     return (mm < 10 ? '0' : '') + mm + yy;
 };
-const isValidCardNumber = (cardNumber:string) => {
+const utils = (cardNumber:string) => {
     if (!(12 <= cardNumber.length && cardNumber.length <= 19)) {
         return false;
     }
@@ -64,7 +64,7 @@ const isValidCvv = (cvv:string,cardNumber:string): boolean => {
 };
 
 const isValidCard = (cardNumber:string,mm:number,yy:number,cvv:string): boolean => {
-    return isValidCardNumber(cardNumber) &&
+    return utils(cardNumber) &&
         isValidExpireDate(mm,yy) &&
         isValidCvv(cvv,cardNumber);
 };
@@ -74,6 +74,6 @@ export {
     isValidExpireMonth,
     isValidExpireYear,
     isValidExpireDate,
-    isValidCardNumber,
+    utils,
     isValidCard,
 }
