@@ -1,6 +1,6 @@
 import {Platform} from "react-native";
 import {Native} from "../Native";
-import {IGetPaymentConfigProps, IOrder, IOrderData, IReceipt, TPrivateOrder} from "./types";
+import {IGetPaymentConfigProps, IOrder, TPrivateOrder} from "./types";
 import {BaseURL, CallbackURL} from "../helpers/constants";
 import {ApiManager} from "./ApiManager";
 import {flittWebViewRef} from "../components/Webview";

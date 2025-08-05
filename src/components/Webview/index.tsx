@@ -5,10 +5,10 @@ import React, {
     useImperativeHandle,
     forwardRef,
 } from 'react';
-import { Platform, View } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { WebViewNavigationEvent } from 'react-native-webview/lib/WebViewTypes';
-import { Native } from '../../Native';
+import {Platform, View} from 'react-native';
+import {WebView} from 'react-native-webview';
+import {WebViewNavigationEvent} from 'react-native-webview/lib/WebViewTypes';
+import {Native} from '../../Native';
 import {IOrderData} from "../../manager/types";
 import {urlStartPattern} from "../../helpers/constants";
 import {FlittWebviewPrivate, FlittWebViewState} from "./types";
@@ -31,7 +31,7 @@ const addViewportMeta = `(${String(() => {
 
 export const flittWebViewRef = React.createRef<FlittWebviewPrivate>();
 
-export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref) => {
+export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref = flittWebViewRef) => {
     const [state, setState] = useState<FlittWebViewState>({
         baseUrl: undefined,
     });
@@ -56,7 +56,7 @@ export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref) => {
                 Native.addCookies(baseUrl, cookies);
             }
 
-            setState({ baseUrl, html, cookies, apiHost, callbackUrl });
+            setState({baseUrl, html, cookies, apiHost, callbackUrl});
 
             return new Promise((resolve, reject) => {
                 onSuccessRef.current = resolve;
@@ -74,8 +74,8 @@ export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref) => {
         (event: WebViewNavigationEvent) => {
             if (!onSuccessRef.current || !state.baseUrl) return;
 
-            const { url } = event.nativeEvent;
-            const { apiHost, callbackUrl } = state;
+            const {url} = event.nativeEvent;
+            const {apiHost, callbackUrl} = state;
 
             const detectsStartPattern = url.startsWith(urlStartPattern);
             const detectsCallbackUrl = url.startsWith(callbackUrl);
@@ -94,7 +94,7 @@ export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref) => {
                     receipt = response.params;
                 }
 
-                setState({ baseUrl: undefined });
+                setState({baseUrl: undefined});
 
                 if (receipt) {
                     onSuccessRef.current?.(receipt);
@@ -108,17 +108,17 @@ export const FlittWebView = forwardRef<FlittWebviewPrivate>((_, ref) => {
     );
 
     if (state.baseUrl === undefined) {
-        return <View />;
+        return <View/>;
     }
 
     return (
         <WebView
             ref={webViewRef}
-            style={{ flex: 1 }}
+            style={{flex: 1}}
             javaScriptEnabled
             domStorageEnabled
             scalesPageToFit
-            source={{ baseUrl: state.baseUrl, html: state.html }}
+            source={{baseUrl: state.baseUrl, html: state.html}}
             injectedJavaScript={addViewportMeta}
             onLoadStart={handleLoadStart}
         />
