@@ -1,4 +1,4 @@
-import {IOrder, IReceipt} from "../../../manager/types";
+import {IOrder, IReceipt} from "../../manager/types";
 
 export interface IFlittProps {
     order: IOrder

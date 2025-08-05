@@ -2,21 +2,21 @@ import React, {FC, useEffect, useState, useMemo} from 'react'
 import {View, Text, TouchableOpacity, Image} from 'react-native'
 import {useForm, SubmitHandler, Controller} from 'react-hook-form'
 import * as cardValidator from 'card-validator'
-import {useFlitt} from "../../../Flitt"
+import {useFlitt} from "../../Flitt"
 import {IFlittProps} from "../FlittForm/types"
-import {FormField} from "../FormField/FormField"
-import {isCvv4Length} from "../../../helpers/utils"
+import {FormField} from "../Fields/FormField/FormField"
+import {isCvv4Length} from "../../helpers/utils"
 import {
     CARD_MAX_LENGTHS,
     CARD_TYPE_IMAGE_BASE_URL,
     DEFAULT_CVV4_LENGTH,
     DEFAULT_CVV_LENGTH
-} from "../../../helpers/constants";
-import {validateCardNumber} from "../../../helpers/validateCardNumber";
-import {formatCardNumber} from "../../../helpers/formatCardNumber";
-import {validateExpiry} from "../../../helpers/validateExpiry";
-import {formatExpiry} from "../../../helpers/formatExpiry";
-import {validateCvv} from "../../../helpers/validateCvv";
+} from "../../helpers/constants";
+import {validateCardNumber} from "../../helpers/validateCardNumber";
+import {formatCardNumber} from "../../helpers/formatCardNumber";
+import {validateExpiry} from "../../helpers/validateExpiry";
+import {formatExpiry} from "../../helpers/formatExpiry";
+import {validateCvv} from "../../helpers/validateCvv";
 import {styles} from "./styles";
 
 

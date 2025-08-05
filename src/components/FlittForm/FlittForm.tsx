@@ -1,12 +1,12 @@
 import React, {FC} from 'react'
 import {View, StyleSheet, Text, TouchableOpacity} from 'react-native'
 import {useForm, SubmitHandler} from 'react-hook-form'
-import {FlittCardNumber} from "../FlittCardNumber/FlittCardNumber"
-import {FlittCardExpiry} from "../FlittCardExpiry/FlittCardExpiry"
-import {FlittCardCvv} from "../FlittCardCvv/FlittCardCvv"
-import {useFlitt} from "../../../Flitt"
+import {FlittCardNumber} from "../Fields/FlittCardNumber/FlittCardNumber"
+import {FlittCardExpiry} from "../Fields/FlittCardExpiry/FlittCardExpiry"
+import {FlittCardCvv} from "../Fields/FlittCardCvv/FlittCardCvv"
+import {useFlitt} from "../../Flitt"
 import {IFlittProps} from "./types";
-import {ICardFormData} from "../../../types";
+import {ICardFormData} from "../../types";
 
 
 export const FlittForm: FC<IFlittProps> = ({order, onError, onStart, onSuccess, title}) => {
