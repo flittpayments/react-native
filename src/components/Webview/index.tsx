@@ -12,22 +12,7 @@ import {Native} from '../../Native';
 import {IOrderData} from "../../manager/types";
 import {urlStartPattern} from "../../helpers/constants";
 import {FlittWebviewPrivate, FlittWebViewState} from "./types";
-
-const addViewportMeta = `(${String(() => {
-    // @ts-ignore
-    const meta = document.createElement('meta');
-    meta.setAttribute('content', 'width=device-width, user-scalable=0,');
-    meta.setAttribute('name', 'viewport');
-    // @ts-ignore
-    const elementHead = document.getElementsByTagName('head');
-    if (elementHead) {
-        elementHead[0].appendChild(meta);
-    } else {
-        // @ts-ignore
-        const head = document.createElement('head');
-        head.appendChild(meta);
-    }
-})})();`;
+import {addViewportMeta} from "../../helpers/viewportMeta";
 
 export const flittWebViewRef = React.createRef<FlittWebviewPrivate>();
 

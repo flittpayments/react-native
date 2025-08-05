@@ -18,13 +18,8 @@ import {validateExpiry} from "../../helpers/validateExpiry";
 import {formatExpiry} from "../../helpers/formatExpiry";
 import {validateCvv} from "../../helpers/validateCvv";
 import {styles} from "./styles";
+import {ICardFormData} from "../../types";
 
-
-export interface ICardFormData {
-    cardNumber: string
-    cvv: string
-    expiry: string
-}
 
 export const FlittCardForm: FC<IFlittProps> = ({
                                                    order,
