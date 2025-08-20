@@ -46,6 +46,7 @@ export class CloudipspWebView extends React.Component<Props, State> {
   private readonly _webViewRef = React.createRef<WebView>();
   private _onSuccess?: (receipt: Receipt) => void;
   private _onFailure?: () => void;
+  private readonly preventFromClosingUrls = ['http://callback',"https://callback"]
 
   private readonly __confirm__ = (
     baseUrl: string,
@@ -86,8 +87,10 @@ export class CloudipspWebView extends React.Component<Props, State> {
         detectsApiToken = url.startsWith(`${apiHost}/api/checkout?token=`);
       }
     }
-
-    if (detectsStartPattern || detectsCallbackUrl || detectsApiToken) {
+    const shouldPreventClosing = this.preventFromClosingUrls.some(preventUrl =>
+        callbackUrl.startsWith(preventUrl)
+    );
+    if ((detectsStartPattern || detectsCallbackUrl || detectsApiToken) && shouldPreventClosing) {
       let receipt: Receipt;
       if (detectsStartPattern) {
         let jsonOfConfirmation = url.split(this._urlStartPattern)[1];
