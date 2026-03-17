@@ -19,7 +19,8 @@ import {Native} from './Native';
 import {
   BankPayCallback,
   IBankPaymentResponse,
-  IPayWithBankRequest
+  IPayWithBankRequest,
+  IFeeCalculationResponse
 } from "./types/flitt.types";
 import {DeviceInfoProvider} from "./DeviceFingerprint";
 import {Bank} from "./models/Bank";
@@ -59,20 +60,41 @@ export class Cloudipsp {
     }
   }
 
-  pay(card: Card = req('card'), order: Order = req('order')): Promise<Receipt> {
-    if (!card.isValidCard()) {
+  public async calculateFee(params: {
+    amount: number;
+    currency: string;
+    cardBin: string;
+    token?: string;
+    merchantId?: number;
+  }): Promise<IFeeCalculationResponse> {
+    const merchantId = params.merchantId ?? this.__merchantId__;
+    const request: any = {
+      amount: params.amount,
+      currency: params.currency,
+      merchant_id: merchantId,
+      card_bin: params.cardBin,
+    };
+    if (params.token) {
+      request.token = params.token;
+    }
+    const response = await this.__callJson__('/api/fee/calc_v2', request);
+    return response as IFeeCalculationResponse;
+  }
+
+  pay(card: Card = req('card'), order: Order = req('order'), isCvvRequired: boolean = true): Promise<Receipt> {
+    if (!card.isValidCard(isCvvRequired)) {
       throw new Error('Card is not valid');
     }
 
     return this.__getToken__(order)
       .then((token) => {
-        return this.__checkout__(token, card, order.email)
+        return this.__checkout__(token, card, order.email, isCvvRequired)
           .then((checkout) => this.__payContinue__(checkout, token, this.__callbackUrl__));
       });
   }
 
-  public payToken(card: Card = req('card'), token: string = req('token')): Promise<Receipt> {
-    if (!card.isValidCard()) {
+  public payToken(card: Card = req('card'), token: string = req('token'), isCvvRequired: boolean = true): Promise<Receipt> {
+    if (!card.isValidCard(isCvvRequired)) {
       throw new Error('Card is not valid');
     }
 
@@ -80,7 +102,7 @@ export class Cloudipsp {
     return this.__getCallbackUrl__(token)
       .then((_callbackUrl) => {
         callbackUrl = _callbackUrl;
-        return this.__checkout__(token, card, undefined);
+        return this.__checkout__(token, card, undefined, isCvvRequired);
       })
       .then((checkout) => this.__payContinue__(checkout, token, callbackUrl));
   }
@@ -287,9 +309,6 @@ export class Cloudipsp {
     }
 
     try {
-      const deviceInfo = new DeviceInfoProvider();
-      const encodedDeviceData = await deviceInfo.getEncodedDeviceFingerprint();
-
       let requestObject: any = {};
       let responseData: IBankPaymentResponse;
 
@@ -303,7 +322,6 @@ export class Cloudipsp {
           currency: orderInfo.currency,
           token: token,
           payment_system: bank.getBankId(),
-          kkh: encodedDeviceData
         };
 
         responseData = await this.__callJson__('/api/checkout/ajax', requestObject);
@@ -318,7 +336,6 @@ export class Cloudipsp {
           currency: order.currency || orderInfo.currency,
           token: localToken,
           payment_system: bank.getBankId(),
-          kkh: encodedDeviceData
         };
         responseData = await this.__callJson__('/api/checkout/ajax', requestObject);
       } else {
@@ -453,7 +470,7 @@ export class Cloudipsp {
       .then(response => response.token);
   }
 
-  private __checkout__(token: string, card: Card, email: string | undefined) {
+  private __checkout__(token: string, card: Card, email: string | undefined, isCvvRequired: boolean = true) {
     const buildExp = (mm: number, yy: number) => {
       return (mm < 10 ? '0' : '') + mm + yy;
     };
@@ -468,7 +485,7 @@ export class Cloudipsp {
       payment_system: 'card'
     };
 
-    if (card.getSource() === 'form') {
+    if (card.getSource() === 'form' && isCvvRequired) {
       rqBody.cvv2 = cardPrivate.__getCvv__();
     }
 
@@ -583,11 +600,14 @@ export class Cloudipsp {
     throw new Failure(response.error_message, response.error_code, response.request_id);
   }
 
-  private __callJson__(path: string, request: any): Promise<any> {
+  private async __callJson__(path: string, request: any): Promise<any> {
     const url = this.__baseUrl__ + path;
     if (__DEV__) {
       console.log(`Request. ${url}`, request);
     }
+
+    const deviceInfo = new DeviceInfoProvider();
+    const encodedDeviceData = await deviceInfo.getEncodedDeviceFingerprint();
 
     return fetch(url, {
       method: 'POST',
@@ -598,7 +618,7 @@ export class Cloudipsp {
         'SDK-OS': Platform.OS,
         'SDK-Version': '1.0.0'
       },
-      body: JSON.stringify({ request })
+      body: JSON.stringify({ request, kkh: encodedDeviceData })
     })
       .then((response) => {
         return response.json();

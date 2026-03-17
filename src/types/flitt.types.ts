@@ -14,3 +14,13 @@ export interface IBankPaymentResponse {
     target: "_top" | "_blank";  // Specifies where to open the URL
     response_status: "success" | "failure";  // The status of the response
 }
+
+export interface IFeeCalculationResponse {
+    discount_percent: number | null;
+    discount_amount: number | null;
+    fee_amount: number | null;
+    total_amount: number | null;
+    promo_status: string | null;
+    message: string | null;
+    cvv2_requirement: "required" | "optional" | "absent" | null;
+}

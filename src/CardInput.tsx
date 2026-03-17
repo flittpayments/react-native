@@ -7,6 +7,8 @@ import {CardFieldNumber} from './CardFieldNumber';
 import {CardFieldExpMm} from './CardFieldExpMm';
 import {CardFieldExpYy} from './CardFieldExpYy';
 import {CardFieldCvv} from './CardFieldCvv';
+import { Cloudipsp } from './Cloudipsp';
+import { IFeeCalculationResponse } from './types/flitt.types';
 
 type Props = {
   labelCardNumber?: string;
@@ -19,7 +21,12 @@ type Props = {
   debug?: boolean;
   textStyle?: StyleProp<TextStyle>;
   textInputStyle?: StyleProp<TextStyle>;
+  onCardNumberChange?: (text: string) => void;
+  cvv2Requirement?: string | null;
   onCompletion?: (input: CardInput) => void;
+  amount?: number;
+  currency?: string;
+  onFeeResult?: (fee: { feeAmount: number | null; totalAmount: number | null; cvv2Requirement: string | null }) => void;
 };
 
 export class CardInput extends React.Component<Props> {
@@ -28,6 +35,17 @@ export class CardInput extends React.Component<Props> {
   private readonly _cardFieldExpMmRef = React.createRef<CardFieldExpMm>();
   private readonly _cardFieldExpYyRef = React.createRef<CardFieldExpYy>();
   private readonly _cardFieldCvvRef = React.createRef<CardFieldCvv>();
+  private _lastBin: string | null = null;
+
+  componentDidUpdate(prevProps: Props): void {
+    if (prevProps.amount !== this.props.amount && this._lastBin) {
+      this._fetchCardFee(this._lastBin);
+    }
+  }
+
+  componentWillUnmount(): void {
+    this._lastBin = null;
+  }
 
   public readonly getCard = (): Card | null => {
     return this._cardLayoutRef.current?.getCard() ?? null;
@@ -61,6 +79,50 @@ export class CardInput extends React.Component<Props> {
     this.props.onCompletion?.(this);
   };
 
+  private readonly _fetchCardFee = async (cardBin: string): Promise<void> => {
+    const { amount, currency, onFeeResult } = this.props;
+
+    if (!amount || !cardBin || !currency) {
+      return;
+    }
+
+    try {
+      const cloudipsp = new Cloudipsp();
+      const responseData = await cloudipsp.calculateFee({
+        amount,
+        currency,
+        cardBin,
+      });
+
+      if (!responseData) {
+        return;
+      }
+
+      onFeeResult?.({
+        feeAmount: responseData.fee_amount ?? null,
+        totalAmount: responseData.total_amount ?? null,
+        cvv2Requirement: (responseData as IFeeCalculationResponse).cvv2_requirement ?? null,
+      });
+    } catch (e) {
+      console.warn('Failed to fetch card fee', e);
+    }
+  };
+  
+
+
+  private readonly _onCardNumberChange = (text: string): void => {
+    this.props.onCardNumberChange?.(text);
+
+    const bin = text.replace(/\s/g, '').slice(0, 6);
+    if (bin.length === 6) {
+      this._lastBin = bin;
+      this._fetchCardFee(bin);
+    } else {
+      this._lastBin = null; 
+    }
+  };
+
+  
   render() {
     return (
       <CardLayout
@@ -78,6 +140,7 @@ export class CardInput extends React.Component<Props> {
         <CardFieldNumber
           ref={this._cardFieldNumberRef}
           placeholder={this.props.placeholderCardNumber}
+          onChangeText={this._onCardNumberChange}
           onSubmitEditing={this._onSubmitCardFieldNumber}
           style={this.props.textInputStyle}
         />
@@ -95,13 +158,17 @@ export class CardInput extends React.Component<Props> {
             onSubmitEditing={this._onSubmitCardFieldExpYy}
             style={[styles.flex1, this.props.textInputStyle]}/>
         </View>
-        <Text style={this.props.textStyle}>{this.props.labelCVV || 'CVV:'}</Text>
-        <CardFieldCvv
-          ref={this._cardFieldCvvRef}
-          placeholder={this.props.placeholderCVV}
-          onSubmitEditing={this._onSubmitCardFieldCvv}
-          style={this.props.textInputStyle}
-        />
+        {this.props.cvv2Requirement !== 'absent' && (
+          <>
+            <Text style={this.props.textStyle}>{this.props.labelCVV || 'CVV:'}</Text>
+            <CardFieldCvv
+              ref={this._cardFieldCvvRef}
+              placeholder={this.props.placeholderCVV}
+              onSubmitEditing={this._onSubmitCardFieldCvv}
+              style={this.props.textInputStyle}
+            />
+          </>
+        )}
       </CardLayout>
     );
   }

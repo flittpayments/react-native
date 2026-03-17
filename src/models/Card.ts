@@ -96,10 +96,10 @@ export class Card {
     }
   };
 
-  public readonly isValidCard = (): boolean => {
+  public readonly isValidCard = (isCvvRequired: boolean = true): boolean => {
     return this.isValidCardNumber() &&
       this.isValidExpireDate() &&
-      this.isValidCvv();
+      (isCvvRequired ? this.isValidCvv() : true);
   };
 }
 
