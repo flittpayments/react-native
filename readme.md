@@ -56,10 +56,10 @@ Add the required permissions to your AndroidManifest.xml:
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 <application ... >
-<meta-data
-android:name="com.google.android.gms.wallet.api.enabled"
-android:value="true" />
-        </application>
+    <meta-data
+        android:name="com.google.android.gms.wallet.api.enabled"
+        android:value="true" />
+</application>
 ```
 
 ## iOS Setup
@@ -69,6 +69,7 @@ android:value="true" />
 To implement Apple Pay, you need to:
 
 Create a Merchant ID:
+
 - Go to Certificates, Identifiers & Profiles
 - Select Identifiers and click the + button
 - Choose "Merchant IDs"
@@ -203,6 +204,7 @@ Use the pre-built Google Pay Button component:
 ```
 
 GooglePayButton Props:
+
 - `theme?: 'dark' | 'light'`
 - `type?: ButtonType`
 - `borderRadius?: number`
@@ -343,7 +345,6 @@ Flitt SDK provides support for bank payments, allowing users to pay directly thr
 You can retrieve the list of available banks for payment using either a token or an order:
 
 ```javascript
-
 const cloudipsp = new Cloudipsp(merchantId);
 
 // Using a token
@@ -369,7 +370,7 @@ const getAvailableBanksWithOrder = async () => {
             'bank payment',     // Description
             'customer@email.com'    // Customer email
         );
-        
+
         const banks = await cloudipsp.getAvailableBanks({
             order: order
         });
@@ -385,38 +386,33 @@ const getAvailableBanksWithOrder = async () => {
 
 After retrieving and selecting a bank, you can initiate the payment:
 
-
 ```javascript
 const initiateBankPayment = async (selectedBank) => {
     try {
-        
-        // You can use either a token or an order
         const response = await cloudipsp.initiateBankPayment({
             // Option 1: Using a token
             token: "your-payment-token",
-            
+
             // Option 2: Using an order
             // order: new Order(100, 'GEL', 'order_id', 'description', 'email'),
-            
+
             // Selected bank from the getAvailableBanks response
             bank: selectedBank,
-            
+
             // Optional: Control whether to automatically redirect to the bank's page
             autoRedirect: true,
-            
+
             // Optional: Callback handlers for payment status
             callback: {
                 onPaidSuccess: (response) => {
                     console.log("Payment successful", response);
-                    // Handle successful payment
                 },
                 onPaidFailure: (error) => {
                     console.error("Payment failed", error);
-                    // Handle failed payment
                 }
             }
         });
-        
+
         return response;
     } catch (error) {
         console.error('Bank payment failed:', error);
@@ -427,16 +423,14 @@ const initiateBankPayment = async (selectedBank) => {
 
 #### Complete Bank Payment Implementation Example
 
-Here's a complete example showing how to implement bank payments in a React component:
-
 ```jsx
 import React, { useEffect, useState } from 'react';
 import {
-    View, 
+    View,
     SafeAreaView,
-    Text, 
-    FlatList, 
-    TouchableOpacity, 
+    Text,
+    FlatList,
+    TouchableOpacity,
     ActivityIndicator
 } from 'react-native';
 import { Cloudipsp } from '@flittpayments/react-native-flitt';
@@ -448,22 +442,17 @@ const BankPaymentScreen = () => {
     const [processing, setProcessing] = useState(false);
 
     const cloudipsp = new Cloudipsp(merchantId);
-    
+
     useEffect(() => {
         loadAvailableBanks();
     }, []);
-    
+
     const loadAvailableBanks = async () => {
         try {
             setLoading(true);
-            
-            // You can use either token or order
             const bankList = await cloudipsp.getAvailableBanks({
                 token: "your-payment-token"
-                // OR
-                // order: yourOrderObject
             });
-            
             setBanks(bankList);
         } catch (error) {
             console.error("Failed to load banks:", error);
@@ -471,27 +460,22 @@ const BankPaymentScreen = () => {
             setLoading(false);
         }
     };
-    
+
     const handleBankSelection = async (bank) => {
         try {
             setProcessing(true);
-            
             await cloudipsp.initiateBankPayment({
                 token: "your-payment-token",
-                // OR
-                // order: yourOrderObject,
                 bank: bank,
                 autoRedirect: true,
                 callback: {
                     onPaidSuccess: (response) => {
                         console.log("Payment successful", response);
                         setProcessing(false);
-                        // Navigate or update UI on success
                     },
                     onPaidFailure: (error) => {
                         console.error("Payment failed", error);
                         setProcessing(false);
-                        // Show error message
                     }
                 }
             });
@@ -500,10 +484,120 @@ const BankPaymentScreen = () => {
             setProcessing(false);
         }
     };
-    
+
     // Render your bank selection UI...
 };
 ```
+
+## Fee Calculation & CVV2 Hiding
+
+Humo and Uzcard (Uzbek card networks) do not require CVV2. The SDK can automatically detect these card brands and hide the CVV field accordingly.
+
+The API is called on the **6th, 7th, 8th, and 9th digit** entered in the card number field, each time sending all digits typed so far as `card_bin`. This progressive approach is necessary because Humo and Uzcard use 8-digit BINs — sending only 6 digits may not be enough to identify the card brand correctly.
+
+### Using `CardInput` with automatic fee calculation
+
+Pass `amount`, `currency`, and `onFeeResult` props to `CardInput`. The component handles all API calls internally as the user types, and the `cvv2Requirement` prop controls whether the CVV field is shown:
+
+```tsx
+import React, { useState, createRef } from 'react';
+import { CardInput } from '@flittpayments/react-native-flitt';
+
+const PaymentScreen = () => {
+    const [cvv2Requirement, setCvv2Requirement] = useState<string | null>(null);
+
+    return (
+        <CardInput
+            amount={200000}
+            currency="UZS"
+            cvv2Requirement={cvv2Requirement}
+            onFeeResult={({ feeAmount, totalAmount, cvv2Requirement }) => {
+                // "absent" means Humo/Uzcard — hide CVV field
+                setCvv2Requirement(cvv2Requirement);
+                console.log('Fee:', feeAmount, 'Total:', totalAmount);
+            }}
+            onCompletion={(cardInput) => {
+                // Proceed with payment
+            }}
+        />
+    );
+};
+```
+
+When `cvv2Requirement` is `"absent"`, the CVV field is automatically hidden inside `CardInput`. When the user deletes back below 6 digits, the field reappears.
+
+---
+
+### Manual `calculateFee` usage
+
+If you are building a custom card form outside of `CardInput`, you can call `calculateFee` directly on a `Cloudipsp` instance:
+
+```typescript
+import { Cloudipsp } from '@flittpayments/react-native-flitt';
+
+const cloudipsp = new Cloudipsp(YOUR_MERCHANT_ID);
+
+const handleCardNumberChange = async (text: string) => {
+    const digits = text.replace(/\s/g, '');
+
+    if (digits.length >= 6 && digits.length <= 9) {
+        try {
+            const result = await cloudipsp.calculateFee({
+                amount: 200000,   // in minor units (e.g. tiyin for UZS)
+                currency: 'UZS',
+                cardBin: digits,
+                // token: 'your-token'  // optional: include if you have a payment token
+            });
+
+            if (result.cvv2_requirement === 'absent') {
+                // Humo or Uzcard — hide the CVV field
+                setCvvVisible(false);
+            } else {
+                setCvvVisible(true);
+            }
+
+            console.log('Fee amount:', result.fee_amount);
+            console.log('Total amount:', result.total_amount);
+        } catch (e) {
+            console.warn('Fee calculation failed', e);
+        }
+    }
+
+    if (digits.length < 6) {
+        // User deleted back below 6 digits — reset
+        setCvvVisible(true);
+    }
+};
+```
+
+**With a payment token** (when you already have a session token from your backend):
+
+```typescript
+const result = await cloudipsp.calculateFee({
+    amount: 200000,
+    currency: 'UZS',
+    cardBin: bin,
+    token: '535c25b08b0befa60555ac4b56115d678c7dcf8b',
+});
+```
+
+**Response fields:**
+
+
+| Field              | Type            | Description                                                     |
+| ------------------ | --------------- | --------------------------------------------------------------- |
+| `cvv2_requirement` | `string | null` | `"absent"` = hide CVV (Humo/Uzcard). Any other value = show CVV |
+| `fee_amount`       | `number | null` | Processing fee in minor units                                   |
+| `total_amount`     | `number | null` | Total charge (amount + fee) in minor units                      |
+| `discount_amount`  | `number | null` | Discount applied, if any                                        |
+| `discount_percent` | `number | null` | Discount percentage, if any                                     |
+
+
+**Why send digits 6 through 9?**
+
+Standard BINs are 6 digits, but Humo and Uzcard use 8-digit BINs. By sending progressively longer BINs as the user types (6→7→8→9), the backend has the best chance to correctly identify the card brand at the earliest possible moment.
+
+---
 
 ## Card Input Components
 
@@ -600,3 +694,4 @@ Cloudipsp.supportsGooglePay()
 - Use unique order IDs for each transaction.
 - Implement proper error handling for all payment methods.
 - For GooglePayButton to work correctly, you must use Google Play Services Wallet version 19.4.0.
+

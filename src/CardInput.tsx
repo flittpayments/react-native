@@ -112,13 +112,17 @@ export class CardInput extends React.Component<Props> {
 
   private readonly _onCardNumberChange = (text: string): void => {
     this.props.onCardNumberChange?.(text);
-
-    const bin = text.replace(/\s/g, '').slice(0, 6);
-    if (bin.length === 6) {
-      this._lastBin = bin;
-      this._fetchCardFee(bin);
-    } else {
-      this._lastBin = null; 
+  
+    const digits = text.replace(/\s/g, '');
+    
+    if (digits.length >= 6 && digits.length <= 9) {
+      const bin = digits.slice(0, digits.length);
+      if (bin !== this._lastBin) {
+        this._lastBin = bin;
+        this._fetchCardFee(bin);
+      }
+    } else if (digits.length < 6) {
+      this._lastBin = null;
     }
   };
 
