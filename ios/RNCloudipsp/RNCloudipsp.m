@@ -106,22 +106,24 @@ RCT_EXPORT_METHOD(applePayComplete:(BOOL)success
 }
 
 - (void)paymentAuthorizationViewControllerDidFinish:(PKPaymentAuthorizationViewController *)controller {
-    RCTPromiseResolveBlock resolver = self.applePayCompleteResolver;
-    self.applePayCompleteResolver = nil;
+    RCTPromiseResolveBlock completeResolver = self.applePayCompleteResolver;
+    RCTPromiseRejectBlock payRejecter = self.applePayRejecter;
 
-    if (resolver == nil) {
-        RCTPromiseRejectBlock rejecter = self.applePayRejecter;
-        self.applePayResolve = nil;
-        self.applePayRejecter = nil;
-        
-        [controller dismissViewControllerAnimated:YES completion:^{
-            rejecter(@"UserCanceled", @"User canceled ApplePay authentication", nil);
-        }];
-    } else {
-        [controller dismissViewControllerAnimated:YES completion:^{
-            resolver(nil);
-        }];
-    }
+    self.applePayCompleteResolver = nil;
+    self.applePayResolve = nil;
+    self.applePayRejecter = nil;
+    self.applePayCallback = nil;
+
+    [controller dismissViewControllerAnimated:YES completion:^{
+        if (payRejecter) {
+            payRejecter(@"UserCanceled", @"User canceled ApplePay authentication", nil);
+            return;
+        }
+
+        if (completeResolver) {
+            completeResolver(nil);
+        }
+    }];
 }
 
 - (void)paymentAuthorizationViewController:(PKPaymentAuthorizationViewController *)controller
